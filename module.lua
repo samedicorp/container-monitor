@@ -3,8 +3,6 @@
 --  All code (c) 2022, The Samedi Corporation.
 -- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
-local json = require('dkjson')
-
 local Module = { }
 
 function Module:register(parameters)
@@ -73,8 +71,7 @@ function Module:updateContainers()
         local element = container.element
         local content = element.getContent()
         local fullPercent = element.getItemsVolume() / element.getMaxVolume()
-        local encoded = json.encode({ name = container:name(), full = fullPercent })
-        self.screen:send("full", encoded)
+        self.screen:send({ name = container:name(), full = fullPercent })
     end
 end
 
@@ -95,25 +92,21 @@ end
 
 Module.renderScript = [[
 
-local json = require('dkjson')
-
 containers = containers or {}
 
-if command == "full" then
-    lastCommand = command
-    params = json.decode(payload)
-    local name = params.name
+if payload then
+    local name = payload.name
     if name then
-        containers[name] = params.full
+        containers[name] = payload
     end
-    reply = "done"
+    reply = "ok"
 end
 
 local render = require('samedicorp.modula.render')
 local layer = render.Layer()
 local y = 20
 for name,container in pairs(containers) do
-    layer:addLabel(string.format("%s: %s", name, container), 10, y)
+    layer:addLabel(string.format("%s: %s", name, container.full), 10, y)
     y = y + 20
 end
 
