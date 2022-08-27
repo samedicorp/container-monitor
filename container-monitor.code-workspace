@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"name": "modula",
+			"path": "../modula"
+		},
+		{
+			"name": "custom",
+			"path": "../../autoconf/custom"
+		},
+		{
+			"name": "container-monitor",
+			"path": "."
+		}
+	],
+	"settings": {}
+}
