@@ -5,7 +5,7 @@
 
 local Module = { }
 
-function Module:register(modula, parameters)
+function Module:register(parameters)
     modula:registerForEvents(self, "onStart", "onStop")
 end
 
@@ -16,25 +16,26 @@ end
 function Module:onStart()
     debugf("Container Monitor started.")
 
-    local modula = self.modula
     local service = modula:getService("screen")
     if service then
         local screen = service:registerScreen(self, false, self.renderScript)
         if screen then
             self.screen = screen
-            screen:send("test", "hello world")
         end
     end
 
-    local core = modula.core
-    if core then
-        local containers = {}
-        modula:withElements("Container", function(element)
+    self:addContainers("ContainerSmallGroup", "ContainerMediumGroup", "ContainerLargeGroup", "ContainerXLGroup")
+end
+
+function Module:addContainers(...)
+    local containers = {}
+    for i,class in ipairs({ ... }) do
+        modula:withElements(class, function(element)
             table.insert(containers, element)
-            local name = element:name()
+            debugf("Found container %s", element:name())
         end)
-        self.containers = containers
     end
+    self.containers = containers
 end
 
 function Module:onStop()
