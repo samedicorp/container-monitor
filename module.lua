@@ -16,7 +16,8 @@ end
 function Module:onStart()
     debugf("Container Monitor started.")
 
-    local service = self.modula:getService("screen")
+    local modula = self.modula
+    local service = modula:getService("screen")
     if service then
         local screen = service:registerScreen(self, false, self.renderScript)
         if screen then
@@ -25,10 +26,19 @@ function Module:onStart()
         end
     end
 
+    local core = modula.core
+    if core then
+        local containers = {}
+        modula:withElements("Container", function(element)
+            table.insert(containers, element)
+            local name = element:name()
+        end)
+        self.containers = containers
+    end
 end
 
 function Module:onStop()
-    printf("Container Monitor stopped.")
+    debugf("Container Monitor stopped.")
 end
 
 function Module:onCommand(command, arguments)
