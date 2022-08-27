@@ -3,10 +3,12 @@
 --  All code (c) 2022, The Samedi Corporation.
 -- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+local json = require('dkjson')
+
 local Module = { }
 
 function Module:register(parameters)
-    modula:registerForEvents(self, "onStart", "onStop")
+    modula:registerForEvents(self, "onStart", "onStop", "onContentUpdate", "onContentTick")
 end
 
 -- ---------------------------------------------------------------------
@@ -24,22 +26,23 @@ function Module:onStart()
         end
     end
 
-    self:addContainers("ContainerSmallGroup", "ContainerMediumGroup", "ContainerLargeGroup", "ContainerXLGroup")
-end
-
-function Module:addContainers(...)
-    local containers = {}
-    for i,class in ipairs({ ... }) do
-        modula:withElements(class, function(element)
-            table.insert(containers, element)
-            debugf("Found container %s", element:name())
-        end)
-    end
-    self.containers = containers
+    self:registerContainers("ContainerSmallGroup", "ContainerMediumGroup", "ContainerLargeGroup", "ContainerXLGroup")
+    self:updateContainers()
+    self:refreshContainers()
+    modula:addTimer("onContentTick", 30.0)
 end
 
 function Module:onStop()
     debugf("Container Monitor stopped.")
+end
+
+function Module:onContentUpdate()
+    printf("content update")
+    self:updateContainers()
+end
+
+function Module:onContentTick()
+    self:refreshContainers()
 end
 
 function Module:onCommand(command, arguments)
@@ -52,49 +55,68 @@ function Module:onScreenReply(reply)
     printf("reply: %s", reply)
 end
 
+-- ---------------------------------------------------------------------
+
+function Module:registerContainers(...)
+    local containers = {}
+    for i,class in ipairs({ ... }) do
+        modula:withElements(class, function(element)
+            table.insert(containers, element)
+            debugf("Found container %s", element:name())
+        end)
+    end
+    self.containers = containers
+end
+
+function Module:updateContainers()
+    for i,container in ipairs(self.containers) do
+        local element = container.element
+        local content = element.getContent()
+        local fullPercent = element.getItemsVolume() / element.getMaxVolume()
+        local encoded = json.encode({ name = container:name(), full = fullPercent })
+        self.screen:send("full", encoded)
+    end
+end
+
+function Module:refreshContainers()
+    for i,container in ipairs(self.containers) do
+        local element = container.element
+        element.updateContent()
+    end
+end
+
+-- updateContent
+-- onContentUpdate
+-- getMaxVolume
+-- getItemsVolume
+-- getItemsMass
+-- getSelfMass
+
+
 Module.renderScript = [[
-if command then
+
+local json = require('dkjson')
+
+containers = containers or {}
+
+if command == "full" then
     lastCommand = command
-    lastPayload = payload
+    params = json.decode(payload)
+    local name = params.name
+    if name then
+        containers[name] = params.full
+    end
     reply = "done"
 end
 
 local render = require('samedicorp.modula.render')
 local layer = render.Layer()
-layer:addButton("test", render.Rect(100, 100, 60, 20), function()
-    message = "test pressed"
-end)
-layer:addButton("other", render.Rect(100, 200, 60, 20), { 
-    style = "lineStyle", 
-    onMouseUp = function()
-        message = "other pressed"
-    end
-})
-
-startRect = startRect or render.Rect(100, 300, 60, 20)
-layer:addButton("dragme", startRect, {
-    onMouseDrag = function(pos, button)
-        if not buttonOffset then
-            buttonOffset = startRect:topLeft():minus(pos)
-        else
-            local newPos = pos:plus(buttonOffset)
-            startRect.x = newPos.x
-            startRect.y = newPos.y
-        end
-    end
-})
-
-layer:addLabel(string.format("screen: %s", name), 10, 20)
-if lastCommand then
-    layer:addLabel(string.format("command: %s", lastCommand), 10, 40)
-    layer:addLabel(string.format("payload: %s", lastPayload), 10, 60)
-    if rate then
-        layer:addLabel(string.format("refresh: %s", rate), 10, 100)
-    end
-    if message then
-        layer:addLabel(message, 10, 80)
-    end
+local y = 20
+for name,container in pairs(containers) do
+    layer:addLabel(string.format("%s: %s", name, container), 10, y)
+    y = y + 20
 end
+
 layer:render()
 
 rate = layer:scheduleRefresh()

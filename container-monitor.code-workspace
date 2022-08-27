@@ -11,6 +11,15 @@
 		{
 			"name": "container-monitor",
 			"path": "."
+		},
+		{
+			"path": "../../utils"
+		},
+		{
+			"path": "../../pl"
+		},
+		{
+			"path": "../../cpml"
 		}
 	],
 	"settings": {}
