@@ -6,7 +6,7 @@
 local Module = { }
 
 function Module:register(parameters)
-    modula:registerForEvents(self, "onStart", "onStop", "onContentUpdate", "onContentTick")
+    modula:registerForEvents(self, "onStart", "onStop", "onContentUpdate", "onContentTick", "onSlowUpdate")
 end
 
 -- ---------------------------------------------------------------------
@@ -35,7 +35,6 @@ function Module:onStop()
 end
 
 function Module:onContentUpdate()
-    printf("content update")
     self:updateContainers()
 end
 
@@ -44,8 +43,12 @@ function Module:onContentTick()
 end
 
 function Module:onScreenReply(reply)
-    printf("reply: %s", reply)
 end
+
+function Module:onSlowUpdate()
+    self:updateContainers()
+end
+
 
 -- ---------------------------------------------------------------------
 
