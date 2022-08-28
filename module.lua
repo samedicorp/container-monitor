@@ -98,14 +98,15 @@ end
 
 local render = require('samedicorp.modula.render')
 local layer = render.Layer()
+layer.rect = layer.rect:inset(10)
 
 local count = 0
 for _,_ in pairs(containers) do
     count = count + 1
 end
 
-local rect = layer.rect:inset(10)
-local y = rect.y
+local rect = layer.rect
+local y = 0
 local labelSize = rect.height / (5 * count)
 local labelFont = render.Font("Play", labelSize)
 local barHeight = (rect.height / (count)) - labelFont.size
@@ -113,10 +114,10 @@ local barWidth = rect.width
 
 for name,container in pairs(containers) do
     local percent = math.floor(container.full * 100)
-    layer:addBar(render.Rect(rect.x, y, barWidth, barHeight), container.full)
+    layer:addBar(render.Rect(0, y, barWidth, barHeight), container.full)
     y = y + barHeight + labelFont.size
-    layer:addLabel(render.Text(name, labelFont), rect.x, y - 4)
-    layer:addLabel(render.Text(string.format("%d%%", percent), labelFont), rect.x + rect.width - (barWidth / 2), y)
+    layer:addLabel(render.Text(name, labelFont), 0, y - 4)
+    layer:addLabel(render.Text(string.format("%d%%", percent), labelFont), rect.width - (barWidth / 2), y)
 end
 
 layer:render()
