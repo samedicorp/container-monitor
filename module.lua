@@ -10,23 +10,16 @@ function Module:register(parameters)
 end
 
 -- ---------------------------------------------------------------------
--- Example event handlers
+-- Event handlers
 -- ---------------------------------------------------------------------
 
 function Module:onStart()
     debugf("Container Monitor started.")
 
-    local service = modula:getService("screen")
-    if service then
-        local screen = service:registerScreen(self, false, self.renderScript)
-        if screen then
-            self.screen = screen
-        end
-    end
-
-    self:registerContainers("ContainerSmallGroup", "ContainerMediumGroup", "ContainerLargeGroup", "ContainerXLGroup")
-    self:updateContainers()
-    self:refreshContainers()
+    self:findContainers("ContainerSmallGroup", "ContainerMediumGroup", "ContainerLargeGroup", "ContainerXLGroup")
+    self:attachToScreen()
+    self:sendContainersToScreen()
+    self:requestContainerContent()
     modula:addTimer("onContentTick", 30.0)
 end
 
@@ -35,24 +28,37 @@ function Module:onStop()
 end
 
 function Module:onContentUpdate()
-    self:updateContainers()
+    self:sendContainersToScreen()
 end
 
 function Module:onContentTick()
-    self:refreshContainers()
+    self:requestContainerContent()
 end
 
 function Module:onScreenReply(reply)
 end
 
 function Module:onSlowUpdate()
-    self:updateContainers()
+    self:sendContainersToScreen()
 end
 
 
 -- ---------------------------------------------------------------------
+-- Internal
+-- ---------------------------------------------------------------------
 
-function Module:registerContainers(...)
+function Module:attachToScreen()
+    -- TODO: send initial container data as part of render script
+    local service = modula:getService("screen")
+    if service then
+        local screen = service:registerScreen(self, false, self.renderScript)
+        if screen then
+            self.screen = screen
+        end
+    end
+end
+
+function Module:findContainers(...)
     local containers = {}
     for i,class in ipairs({ ... }) do
         modula:withElements(class, function(element)
@@ -63,16 +69,19 @@ function Module:registerContainers(...)
     self.containers = containers
 end
 
-function Module:updateContainers()
+function Module:sendContainersToScreen()
     for i,container in ipairs(self.containers) do
         local element = container.element
         local content = element.getContent()
         local fullPercent = element.getItemsVolume() / element.getMaxVolume()
-        self.screen:send({ name = container:name(), full = fullPercent })
+        if container.fullPercent ~= fullPercent then
+            container.fullPercent = fullPercent
+            self.screen:send({ name = container:name(), value = fullPercent })
+        end
     end
 end
 
-function Module:refreshContainers()
+function Module:requestContainerContent()
     for i,container in ipairs(self.containers) do
         local element = container.element
         element.updateContent()
@@ -99,29 +108,14 @@ if payload then
     reply = { name = name, result = "ok" }
 end
 
-local render = require('samedicorp.modula.render')
-local layer = render.Layer()
-layer.rect = layer.rect:inset(10)
+local toolkit = require('samedicorp.toolkit.toolkit')
+local Layer = require('samedicorp.toolkit.layer')
+local Chart = require('samedicorp.toolkit.chart')
+local layer = Layer.new()
 
-local count = 0
-for _,_ in pairs(containers) do
-    count = count + 1
-end
-
-local rect = layer.rect
-local y = 0
-local labelSize = rect.height / (5 * count)
-local labelFont = render.Font("Play", labelSize)
-local barHeight = (rect.height / (count)) - labelFont.size
-local barWidth = rect.width
-
-for name,container in pairs(containers) do
-    local percent = math.floor(container.full * 100)
-    layer:addBar(render.Rect(0, y, barWidth, barHeight), container.full)
-    y = y + barHeight + labelFont.size
-    layer:addLabel(render.Text(name, labelFont), 0, y - 4)
-    layer:addLabel(render.Text(string.format("%d%%", percent), labelFont), rect.width - (barWidth / 2), y)
-end
+local rect = layer.rect:inset(10)
+local chart = Chart.new(rect, containers, "Play")
+layer:addWidget(chart)
 
 layer:render()
 
