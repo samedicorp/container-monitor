@@ -108,18 +108,13 @@ if payload then
     reply = { name = name, result = "ok" }
 end
 
-local toolkit = require('samedicorp.toolkit.toolkit')
-local Layer = require('samedicorp.toolkit.layer')
-local Chart = require('samedicorp.toolkit.chart')
-local layer = Layer.new()
-
-local rect = layer.rect:inset(10)
-local chart = Chart.new(rect, containers, "Play")
-layer:addWidget(chart)
+local Screen = require('samedicorp.toolkit.screen')
+local screen = Screen.new()
+local layer = screen:addLayer()
+local chart = layer:addChart(layer.rect:inset(10), containers, "Play")
 
 layer:render()
-
-rate = layer:scheduleRefresh()
+screen:scheduleRefresh()
 ]]
 
 return Module

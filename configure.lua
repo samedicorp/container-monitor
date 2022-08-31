@@ -12,7 +12,7 @@ modulaSettings = {
     logging = logging, 
     useLocal = useLocal,
     modules = {
-        ["samedicorp.container-monitor.module"] = { },
+        ["samedicorp.container-monitor.main"] = { },
         ["samedicorp.modula.modules.screen"] = { }
     }
 }
