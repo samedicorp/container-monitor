@@ -3,6 +3,12 @@
 --  All code (c) 2022, The Samedi Corporation.
 -- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
+-- If setting up manually, add the following handler to any connected screens:
+--     local failure = modula:call("onScreenReply", output)
+--     if failure then 
+--         error(failure) 
+--     end
+
 local Module = { }
 
 function Module:register(parameters)
@@ -73,10 +79,20 @@ function Module:sendContainersToScreen()
     for i,container in ipairs(self.containers) do
         local element = container.element
         local content = element.getContent()
-        local fullPercent = element.getItemsVolume() / element.getMaxVolume()
-        if container.fullPercent ~= fullPercent then
-            container.fullPercent = fullPercent
-            self.screen:send({ name = container:name(), value = fullPercent })
+        local volume = element.getItemsVolume()
+        local max = element.getMaxVolume()
+        if max > 0 then
+            debugf("%s %s %s", container:name(), volume, max)
+            local fullPercent = volume / max 
+            if container.fullPercent ~= fullPercent then
+                container.fullPercent = fullPercent
+                self.screen:send({ name = container:name(), value = fullPercent })
+            end
+        else
+            debug("Max is zero for %s %s -- is it a container?", container:name(), element.getClass())
+            for k,v in pairs(element) do
+                print("%s", k)
+            end
         end
     end
 end
@@ -88,12 +104,6 @@ function Module:requestContainerContent()
     end
 end
 
--- updateContent
--- onContentUpdate
--- getMaxVolume
--- getItemsVolume
--- getItemsMass
--- getSelfMass
 
 
 Module.renderScript = [[
@@ -108,8 +118,7 @@ if payload then
     reply = { name = name, result = "ok" }
 end
 
-local Screen = require('samedicorp.toolkit.screen')
-local screen = Screen.new()
+local screen = toolkit.Screen.new()
 local layer = screen:addLayer()
 local chart = layer:addChart(layer.rect:inset(10), containers, "Play")
 
