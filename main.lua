@@ -4,10 +4,10 @@
 -- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 -- If setting up manually, add the following handler to any connected screens:
---     local failure = modula:call("onScreenReply", output)
---     if failure then 
---         error(failure) 
---     end
+    -- local failure = modula:call("onScreenReply", output)
+    -- if failure then 
+    --     error(failure) 
+    -- end
 
 local Module = { }
 
