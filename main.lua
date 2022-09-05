@@ -12,7 +12,7 @@
 local Module = { }
 
 function Module:register(parameters)
-    modula:registerForEvents(self, "onStart", "onStop", "onContentUpdate", "onContentTick", "onSlowUpdate")
+    modula:registerForEvents(self, "onStart", "onStop", "onContainerChanged")
 end
 
 -- ---------------------------------------------------------------------
@@ -22,30 +22,22 @@ end
 function Module:onStart()
     debugf("Container Monitor started.")
 
-    self:findContainers("ContainerSmallGroup", "ContainerMediumGroup", "ContainerLargeGroup", "ContainerXLGroup")
     self:attachToScreen()
-    self:sendContainersToScreen()
-    self:requestContainerContent()
-    modula:addTimer("onContentTick", 30.0)
+    local containers = modula:getService("containers")
+    if containers then
+        containers:findContainers("ContainerSmallGroup", "ContainerMediumGroup", "ContainerLargeGroup", "ContainerXLGroup")
+    end
 end
 
 function Module:onStop()
     debugf("Container Monitor stopped.")
 end
 
-function Module:onContentUpdate()
-    self:sendContainersToScreen()
-end
-
-function Module:onContentTick()
-    self:requestContainerContent()
+function Module:onContainerChanged(container)
+    self.screen:send({ name = container:name(), value = container.percentage })
 end
 
 function Module:onScreenReply(reply)
-end
-
-function Module:onSlowUpdate()
-    self:sendContainersToScreen()
 end
 
 
@@ -63,48 +55,6 @@ function Module:attachToScreen()
         end
     end
 end
-
-function Module:findContainers(...)
-    local containers = {}
-    for i,class in ipairs({ ... }) do
-        modula:withElements(class, function(element)
-            table.insert(containers, element)
-            debugf("Found container %s", element:name())
-        end)
-    end
-    self.containers = containers
-end
-
-function Module:sendContainersToScreen()
-    for i,container in ipairs(self.containers) do
-        local element = container.element
-        local content = element.getContent()
-        local volume = element.getItemsVolume()
-        local max = element.getMaxVolume()
-        if max > 0 then
-            debugf("%s %s %s", container:name(), volume, max)
-            local fullPercent = volume / max 
-            if container.fullPercent ~= fullPercent then
-                container.fullPercent = fullPercent
-                self.screen:send({ name = container:name(), value = fullPercent })
-            end
-        else
-            debug("Max is zero for %s %s -- is it a container?", container:name(), element.getClass())
-            for k,v in pairs(element) do
-                print("%s", k)
-            end
-        end
-    end
-end
-
-function Module:requestContainerContent()
-    for i,container in ipairs(self.containers) do
-        local element = container.element
-        element.updateContent()
-    end
-end
-
-
 
 Module.renderScript = [[
 

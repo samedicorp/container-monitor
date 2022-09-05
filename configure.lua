@@ -12,9 +12,11 @@ modulaSettings = {
     logging = logging, 
     useLocal = useLocal,
     modules = {
-        ["samedicorp.container-monitor.main"] = { },
-        ["samedicorp.modula.modules.screen"] = { }
-    }
+        ["samedicorp.modula.modules.containers"] = { },
+        ["samedicorp.modula.modules.screen"] = { },
+        ["samedicorp.container-monitor.main"] = { }
+    },
+    templates = "samedicorp/container-monitor/templates"
 }
 
 

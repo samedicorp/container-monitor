@@ -13,16 +13,10 @@
 			"path": "."
 		},
 		{
-			"path": "../../utils"
-		},
-		{
-			"path": "../../pl"
-		},
-		{
-			"path": "../../cpml"
-		},
-		{
 			"path": "../toolkit"
+		},
+		{
+			"path": "../fuel-monitor"
 		}
 	],
 	"settings": {}
