@@ -14,9 +14,6 @@
 		},
 		{
 			"path": "../toolkit"
-		},
-		{
-			"path": "../fuel-monitor"
 		}
 	],
 	"settings": {}
