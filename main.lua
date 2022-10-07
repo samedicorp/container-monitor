@@ -3,7 +3,7 @@
 --  All code (c) 2022, The Samedi Corporation.
 -- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
--- If setting up manually, add the following handler to any connected screens:
+-- If setting up manually, add the following onOutputChanged handler to any connected screens:
     -- local failure = modula:call("onScreenReply", output)
     -- if failure then 
     --     error(failure) 
