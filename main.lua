@@ -70,7 +70,7 @@ end
 
 local screen = toolkit.Screen.new()
 local layer = screen:addLayer()
-local chart = layer:addChart(layer.rect:inset(10), containers, "Play")
+local chart = layer:addChart(layer.rect:inset(10), containers, { useValueColors = true })
 
 layer:render()
 screen:scheduleRefresh()
