@@ -36,14 +36,14 @@
             }
         },
         "0": {
-            "name": "slot1",
+            "name": "core",
             "type": {
                 "methods": [],
                 "events": []
             }
         },
         "1": {
-            "name": "slot2",
+            "name": "screen",
             "type": {
                 "methods": [],
                 "events": []
@@ -216,8 +216,20 @@
                 "args": []
             },
             "code": "%s"
-        }
-    ],
+        },
+        {
+            "code": " local failure = modula:call(\"onScreenReply\", output)\n if failure then \n      error(failure) \n end",
+            "filter": {
+                "args": [
+                    {
+                        "variable": "*"
+                    }
+                ],
+                "signature": "onOutputChanged(output)",
+                "slotKey": "1"
+            },
+            "key": "10"
+        },    ],
     "methods": [],
     "events": []
 }
